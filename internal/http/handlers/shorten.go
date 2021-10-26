@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"gopkg.in/go-playground/validator.v9"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // swagger:operation POST /shorten shortener shortenURL
@@ -53,6 +56,11 @@ import (
 //   500:
 //     description: Internal error
 func (h *Handler) ShortenEndpoint(res http.ResponseWriter, req *http.Request) {
+	start := time.Now()
+	defer func() {
+		h.latencyHistogram.With(prometheus.Labels{"handler": "ShortenEndpoint"}).Observe(float64(time.Since(start).Milliseconds()))
+	}()
+
 	res.Header().Add("Content-Type", "application/json")
 
 	var input struct {
