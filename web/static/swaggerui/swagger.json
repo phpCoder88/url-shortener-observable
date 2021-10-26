@@ -1,0 +1,277 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Open API for URL shortener service",
+    "title": "URL shortener API.",
+    "contact": {
+      "name": "Pavel Bobylev",
+      "url": "https://github.com/phpCoder88",
+      "email": "p_bobylev@bk.ru"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8000",
+  "basePath": "/api",
+  "paths": {
+    "/report": {
+      "get": {
+        "description": "Returns report information",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "shortener"
+        ],
+        "operationId": "URLReport",
+        "parameters": [
+          {
+            "type": "integer",
+            "format": "int64",
+            "default": 100,
+            "description": "Max number of records to return",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "default": 0,
+            "description": "Offset needed to return a specific subset of records",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns report information",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ShortURLReportDto"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/service-info": {
+      "get": {
+        "description": "Returns build information",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "service"
+        ],
+        "operationId": "BuildInfo",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/BuiltInfo"
+          }
+        }
+      }
+    },
+    "/shorten": {
+      "post": {
+        "description": "Creates a new short URL for given URL",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "shortener"
+        ],
+        "operationId": "shortenURL",
+        "parameters": [
+          {
+            "description": "URL to shorten",
+            "name": "url",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "fullURL"
+              ],
+              "properties": {
+                "fullURL": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Short URL already exists",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "shortURL": {
+                  "description": "Short URL",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created short URL",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "shortURL": {
+                  "description": "Short URL",
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ShortURL": {
+      "description": "ShortURL represents the short URL for this application",
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "x-go-name": "ID"
+        },
+        "long_url": {
+          "type": "string",
+          "uniqueItems": true,
+          "x-go-name": "LongURL"
+        },
+        "token": {
+          "type": "string",
+          "uniqueItems": true,
+          "x-go-name": "Token"
+        }
+      },
+      "x-go-package": "github.com/phpCoder88/url-shortener/internal/entities"
+    },
+    "ShortURLReportDto": {
+      "description": "ShortURLReportDto represents the short URL for this application with visiting statistics",
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "enabled": {
+          "type": "boolean",
+          "x-go-name": "Enabled"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "x-go-name": "ID"
+        },
+        "long_url": {
+          "type": "string",
+          "uniqueItems": true,
+          "x-go-name": "LongURL"
+        },
+        "token": {
+          "type": "string",
+          "uniqueItems": true,
+          "x-go-name": "Token"
+        },
+        "visits": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Visits"
+        }
+      },
+      "x-go-package": "github.com/phpCoder88/url-shortener/internal/dto"
+    },
+    "URLVisit": {
+      "description": "URLVisit represents the visit of specific URL",
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "x-go-name": "CreatedAt"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "x-go-name": "ID"
+        },
+        "ip": {
+          "type": "string",
+          "x-go-name": "IP"
+        },
+        "url_id": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1,
+          "x-go-name": "UrlID"
+        }
+      },
+      "x-go-package": "github.com/phpCoder88/url-shortener/internal/entities"
+    }
+  },
+  "responses": {
+    "BuiltInfo": {
+      "description": "BuiltInfo represents the build information for this application",
+      "headers": {
+        "BuildCommit": {
+          "type": "string",
+          "description": "The BuildCommit of running application"
+        },
+        "BuildDate": {
+          "type": "string",
+          "description": "The BuildDate running application"
+        },
+        "Version": {
+          "type": "string",
+          "description": "The Version of running application"
+        }
+      }
+    }
+  }
+}

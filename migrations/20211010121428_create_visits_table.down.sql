@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS url_visits;
+
+ALTER TABLE IF EXISTS short_urls
+    DROP COLUMN IF EXISTS enabled,
+    DROP COLUMN IF EXISTS created_at,
+    ADD COLUMN visits INTEGER DEFAULT 0 NOT NULL;

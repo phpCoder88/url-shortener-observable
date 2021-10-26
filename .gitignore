@@ -1,0 +1,10 @@
+.idea
+error.log
+access.log
+profile.out
+
+.docker
+.run
+
+# Build artifacts
+/build

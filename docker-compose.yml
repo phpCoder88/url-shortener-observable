@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  shortener:
+    container_name: shortener
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+    - "8000:8000"
+    environment:
+      DB_HOST: db
+      DB_USER: shortener
+      DB_NAME: shortener
+      DB_PASSWORD: 123456789
+      DB_SSL_MODE: disable
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - shortener
+
+  db:
+    restart: always
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: shortener
+      POSTGRES_USER: shortener
+      POSTGRES_PASSWORD: 123456789
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.docker/postgresql/data/:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shortener"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+    networks:
+      - shortener
+
+  migrations:
+    image: migrate/migrate
+    volumes:
+    - ./migrations:/migrations
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["-path", "/migrations", "-database",  "postgres://shortener:123456789@db:5432/shortener?sslmode=disable", "up"]
+    networks:
+      - shortener
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8001:8080"
+    depends_on:
+      - db
+    networks:
+      - shortener
+
+volumes:
+  shortenerDB:
+    driver: local
+
+networks:
+  shortener:
+    driver: bridge
