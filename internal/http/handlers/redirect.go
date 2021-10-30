@@ -26,5 +26,6 @@ func (h *Handler) RedirectFullURL(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	h.metrics.RedirectCounter.Inc()
 	http.Redirect(res, req, fullURL, http.StatusSeeOther)
 }

@@ -30,4 +30,6 @@ func (h *Handler) BuiltInfoEndpoint(res http.ResponseWriter, req *http.Request) 
 	if err != nil {
 		h.logger.Error(err)
 	}
+
+	h.metrics.InfoCounter.Inc()
 }

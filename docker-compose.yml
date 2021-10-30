@@ -8,6 +8,7 @@ services:
       dockerfile: Dockerfile
     ports:
     - "8000:8000"
+    - "9000:9000"
     environment:
       DB_HOST: db
       DB_USER: shortener
@@ -62,8 +63,26 @@ services:
     networks:
       - shortener
 
+  prometheus:
+    image: "prom/prometheus:v2.30.3"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ".docker/prometheus/targets:/etc/prometheus/targets"
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "prometheus_data:/prometheus"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=70d"
+      - "--log.level=debug"
+      - "--web.enable-lifecycle"
+    restart: unless-stopped
+    networks:
+      - shortener
+
 volumes:
-  shortenerDB:
+  prometheus_data:
     driver: local
 
 networks:

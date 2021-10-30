@@ -3,14 +3,14 @@ package routes
 import (
 	"net/http"
 
-	"github.com/phpCoder88/url-shortener/internal/http/handlers"
-	"github.com/phpCoder88/url-shortener/internal/http/middlewares"
-	"github.com/phpCoder88/url-shortener/internal/ioc"
-
 	gHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
 	"go.uber.org/zap"
+
+	"github.com/phpCoder88/url-shortener/internal/http/handlers"
+	"github.com/phpCoder88/url-shortener/internal/http/middlewares"
+	"github.com/phpCoder88/url-shortener/internal/ioc"
 )
 
 func Routes(logger *zap.SugaredLogger, container *ioc.Container) http.Handler {
