@@ -8,6 +8,7 @@ import (
 
 	"gopkg.in/go-playground/validator.v9"
 
+	"github.com/phpCoder88/url-shortener/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -58,7 +59,9 @@ import (
 func (h *Handler) ShortenEndpoint(res http.ResponseWriter, req *http.Request) {
 	start := time.Now()
 	defer func() {
-		h.latencyHistogram.With(prometheus.Labels{"handler": "ShortenEndpoint"}).Observe(float64(time.Since(start).Milliseconds()))
+		h.metrics.LatencyHistogram.
+			With(prometheus.Labels{metrics.LabelHandler: "ShortenEndpoint"}).
+			Observe(float64(time.Since(start).Milliseconds()))
 	}()
 
 	res.Header().Add("Content-Type", "application/json")

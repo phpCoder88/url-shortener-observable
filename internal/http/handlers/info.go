@@ -31,5 +31,5 @@ func (h *Handler) BuiltInfoEndpoint(res http.ResponseWriter, req *http.Request) 
 		h.logger.Error(err)
 	}
 
-	h.infoCounter.Inc()
+	h.metrics.InfoCounter.Inc()
 }
