@@ -5,14 +5,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/phpCoder88/url-shortener/internal/config"
 	"github.com/phpCoder88/url-shortener/internal/http/routes"
 	"github.com/phpCoder88/url-shortener/internal/ioc"
-
 	"go.uber.org/zap"
 )
 
@@ -25,7 +21,7 @@ type Server struct {
 	errors    chan error
 }
 
-func NewServer(logger *zap.SugaredLogger, conf *config.Config, container *ioc.Container) *Server {
+func NewServer(logger *zap.SugaredLogger, conf *config.Config, container *ioc.Container, errChan chan error) *Server {
 	return &Server{
 		server: http.Server{
 			Addr:         net.JoinHostPort("", fmt.Sprint(conf.Server.Port)),
@@ -37,33 +33,23 @@ func NewServer(logger *zap.SugaredLogger, conf *config.Config, container *ioc.Co
 		logger:    logger,
 		conf:      conf,
 		container: container,
-		errors:    make(chan error, 1),
+		errors:    errChan,
 	}
 }
 
-func (s *Server) Run() error {
+func (s *Server) Run() {
 	go func() {
-		s.logger.Infof("Server is listening on PORT: %d...", s.conf.Server.Port)
+		s.logger.Infof("API Server is listening on PORT: %d...", s.conf.Server.Port)
 		err := s.server.ListenAndServe()
 		if err != nil {
 			s.errors <- err
 		}
 	}()
+}
 
-	// Graceful shutdown
-	osSignalChan := make(chan os.Signal, 1)
-	signal.Notify(osSignalChan, syscall.SIGINT, syscall.SIGTERM)
-
-	select {
-	case x := <-osSignalChan:
-		s.logger.Infow("Received a signal.", "signal", x.String())
-	case err := <-s.errors:
-		s.logger.Errorw("Received an error from the business logic server.", "err", err)
-	}
-
-	s.logger.Info("Starting to shutdown the server...")
+func (s *Server) Stop() error {
+	s.logger.Info("Starting to shutdown the API server...")
 	ctx, cancel := context.WithTimeout(context.Background(), s.conf.Server.ShutdownTimeout)
 	defer cancel()
-
 	return s.server.Shutdown(ctx)
 }

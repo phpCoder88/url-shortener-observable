@@ -6,7 +6,6 @@ import (
 	gHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
 	"github.com/phpCoder88/url-shortener/internal/http/handlers"
@@ -27,7 +26,6 @@ func Routes(logger *zap.SugaredLogger, container *ioc.Container) http.Handler {
 	api.HandleFunc("/service-info", handler.BuiltInfoEndpoint).Methods("GET")
 	router.PathPrefix("/swaggerui/").Handler(http.StripPrefix("/swaggerui/", http.FileServer(http.Dir("./web/static/swaggerui"))))
 	router.HandleFunc("/", handler.RedirectFullURL).Methods("GET").Queries("t", "{token}")
-	router.Handle("/metrics", promhttp.Handler()).Methods("GET")
 
 	methods := gHandlers.AllowedMethods([]string{
 		"GET",

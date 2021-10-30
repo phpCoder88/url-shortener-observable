@@ -22,6 +22,9 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/phpCoder88/url-shortener/internal/config"
 	"github.com/phpCoder88/url-shortener/internal/ioc"
@@ -67,10 +70,35 @@ func main() {
 
 	slogger.Info("Configuring the application units...")
 	container := ioc.NewContainer(db, conf.DB.QueryTimeout)
-	apiServer := server.NewServer(slogger, conf, container)
-	err = apiServer.Run()
+	errChan := make(chan error, 1)
+
+	slogger.Info("Starting the servers...")
+	apiServer := server.NewServer(slogger, conf, container, errChan)
+	apiServer.Run()
+
+	metricServer := server.NewMetricServer(slogger, 9000, conf.Server.ShutdownTimeout, errChan)
+	metricServer.Run()
+
+	// Graceful shutdown
+	osSignalChan := make(chan os.Signal, 1)
+	signal.Notify(osSignalChan, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case x := <-osSignalChan:
+		slogger.Infow("Received a signal.", "signal", x.String())
+	case err = <-errChan:
+		slogger.Errorw("Received an error from the business logic server.", "err", err)
+	}
+
+	slogger.Info("Stopping the servers...")
+	err = apiServer.Stop()
 	if err != nil {
-		slogger.Error("Occurred error during stopping the API server.", "err", err)
+		slogger.Error("Got an error while stopping the API server.", "err", err)
+	}
+
+	err = metricServer.Stop()
+	if err != nil {
+		slogger.Error("Got an error while stopping the metrics server.", "err", err)
 	}
 
 	slogger.Info("The app is calling the last defers and will be stopped.")
