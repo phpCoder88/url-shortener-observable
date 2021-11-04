@@ -14,9 +14,62 @@ services:
       DB_NAME: shortener
       DB_PASSWORD: 123456789
       DB_SSL_MODE: disable
+    labels:
+      co.elastic.logs/json.keys_under_root: true
+      co.elastic.logs/json.overwrite_keys: true
+      co.elastic.logs/json.add_error_key: true
+      co.elastic.logs/json.expand_keys: true
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - shortener
+
+  beats:
+    image: docker.elastic.co/beats/filebeat:7.15.0
+    container_name: beats
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOST: '["http://elasticsearch:9200"]'
+    user: root
+    volumes:
+      - "./filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro"
+      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    depends_on:
+      - elasticsearch
+    command: ["--strict.perms=false"]
+    networks:
+      - shortener
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.0
+    container_name: elasticsearch
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./.docker/elasticsearch/data/:/usr/share/elasticsearch/data/
+    ports:
+      - "9200:9200"
+    networks:
+      - shortener
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.15.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
     networks:
       - shortener
 

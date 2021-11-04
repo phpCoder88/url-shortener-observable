@@ -37,11 +37,13 @@ require (
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/lib/pq v1.10.0 // indirect
+	github.com/magefile/mage v1.9.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
+	go.elastic.co/ecszap v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e // indirect
 	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect
