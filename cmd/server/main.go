@@ -22,6 +22,9 @@ package main
 
 import (
 	"log"
+	"os"
+
+	"go.elastic.co/ecszap"
 
 	"github.com/phpCoder88/url-shortener/internal/config"
 	"github.com/phpCoder88/url-shortener/internal/ioc"
@@ -33,10 +36,10 @@ import (
 )
 
 func main() {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		log.Fatalf("can't initialize zap logger: %v", err)
-	}
+	var err error
+	encoderConfig := ecszap.NewDefaultEncoderConfig()
+	core := ecszap.NewCore(encoderConfig, os.Stdout, zap.DebugLevel)
+	logger := zap.New(core, zap.AddCaller())
 
 	logger = logger.With(
 		zap.String("Version", version.Version),
