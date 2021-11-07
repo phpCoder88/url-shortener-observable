@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/opentracing/opentracing-go"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -55,6 +56,9 @@ import (
 func (h *Handler) ShortenEndpoint(res http.ResponseWriter, req *http.Request) {
 	res.Header().Add("Content-Type", "application/json")
 
+	span, ctx := opentracing.StartSpanFromContextWithTracer(req.Context(), h.tracer, "Handler.ShortenEndpoint")
+	defer span.Finish()
+
 	var input struct {
 		FullURL string `validate:"required,url"`
 	}
@@ -73,7 +77,7 @@ func (h *Handler) ShortenEndpoint(res http.ResponseWriter, req *http.Request) {
 	}
 
 	h.logger.Info(input)
-	urlModel, exist, err := h.container.ShortenerService.CreateShortURL(input.FullURL)
+	urlModel, exist, err := h.container.ShortenerService.CreateShortURL(ctx, input.FullURL)
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		h.logger.Error(err)

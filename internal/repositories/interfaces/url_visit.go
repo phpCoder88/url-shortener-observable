@@ -1,5 +1,7 @@
 package interfaces
 
+import "context"
+
 type URLVisitRepository interface {
-	AddURLVisit(int64, string) error
+	AddURLVisit(context.Context, int64, string) error
 }

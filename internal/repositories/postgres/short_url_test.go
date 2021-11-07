@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"testing"
@@ -8,19 +9,21 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
+	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/phpCoder88/url-shortener/internal/dto"
-	"github.com/phpCoder88/url-shortener/internal/entities"
+	"github.com/phpCoder88/url-shortener-observable/internal/dto"
+	"github.com/phpCoder88/url-shortener-observable/internal/entities"
 )
 
 var ErrContextDeadlineExceeded = errors.New("context deadline exceeded")
 
 type PgShortURLRepositoryTestSuite struct {
 	suite.Suite
-	mDB  *sql.DB
-	mock sqlmock.Sqlmock
-	db   *sqlx.DB
+	mDB    *sql.DB
+	mock   sqlmock.Sqlmock
+	db     *sqlx.DB
+	tracer *mocktracer.MockTracer
 }
 
 func (s *PgShortURLRepositoryTestSuite) SetupTest() {
@@ -28,6 +31,7 @@ func (s *PgShortURLRepositoryTestSuite) SetupTest() {
 	s.mDB, s.mock, err = sqlmock.New()
 	s.Require().NoError(err)
 	s.db = sqlx.NewDb(s.mDB, "sqlmock")
+	s.tracer = mocktracer.New()
 }
 
 func (s *PgShortURLRepositoryTestSuite) TearDownTest() {
@@ -78,8 +82,8 @@ func (s *PgShortURLRepositoryTestSuite) TestPgShortURLRepository_Add() {
 		s.Run(tt.name, func() {
 			tt.mockBehavior(tt.model)
 
-			repository := NewPgShortURLRepository(s.db, tt.timeout)
-			err := repository.Add(tt.model)
+			repository := NewPgShortURLRepository(s.db, tt.timeout, s.tracer)
+			err := repository.Add(context.Background(), tt.model)
 			if tt.wantError {
 				s.Error(err)
 			} else {
@@ -178,8 +182,8 @@ func (s *PgShortURLRepositoryTestSuite) TestPgShortURLRepository_FindAll() {
 		s.Run(tt.name, func() {
 			tt.mockBehavior(tt.args, tt.want)
 
-			repository := NewPgShortURLRepository(s.db, tt.timeout)
-			urls, err := repository.FindAll(tt.args.limit, tt.args.offset)
+			repository := NewPgShortURLRepository(s.db, tt.timeout, s.tracer)
+			urls, err := repository.FindAll(context.Background(), tt.args.limit, tt.args.offset)
 			if tt.wantError {
 				s.Error(err)
 			} else {
@@ -201,8 +205,8 @@ func (s *PgShortURLRepositoryTestSuite) TestPgShortURLRepository_FindByURL() {
 		s.Run(tt.name, func() {
 			tt.mockBehavior(tt.colValue, tt.want)
 
-			repository := NewPgShortURLRepository(s.db, tt.timeout)
-			url, err := repository.FindByURL(tt.colValue)
+			repository := NewPgShortURLRepository(s.db, tt.timeout, s.tracer)
+			url, err := repository.FindByURL(context.Background(), tt.colValue)
 			checkSearchByTokenOrURLResults(s, tt.wantError, tt.want, url, err)
 		})
 	}
@@ -216,8 +220,8 @@ func (s *PgShortURLRepositoryTestSuite) TestPgShortURLRepository_FindByToken() {
 		s.Run(tt.name, func() {
 			tt.mockBehavior(tt.colValue, tt.want)
 
-			repository := NewPgShortURLRepository(s.db, tt.timeout)
-			url, err := repository.FindByToken(tt.colValue)
+			repository := NewPgShortURLRepository(s.db, tt.timeout, s.tracer)
+			url, err := repository.FindByToken(context.Background(), tt.colValue)
 			checkSearchByTokenOrURLResults(s, tt.wantError, tt.want, url, err)
 		})
 	}

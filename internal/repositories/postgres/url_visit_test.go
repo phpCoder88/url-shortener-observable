@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"testing"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
+	"github.com/opentracing/opentracing-go/mocktracer"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -20,9 +22,10 @@ func (a AnyTime) Match(v driver.Value) bool {
 
 type PgURLVisitRepositoryTestSuite struct {
 	suite.Suite
-	mDB  *sql.DB
-	mock sqlmock.Sqlmock
-	db   *sqlx.DB
+	mDB    *sql.DB
+	mock   sqlmock.Sqlmock
+	db     *sqlx.DB
+	tracer *mocktracer.MockTracer
 }
 
 func (s *PgURLVisitRepositoryTestSuite) SetupTest() {
@@ -30,6 +33,7 @@ func (s *PgURLVisitRepositoryTestSuite) SetupTest() {
 	s.mDB, s.mock, err = sqlmock.New()
 	s.Require().NoError(err)
 	s.db = sqlx.NewDb(s.mDB, "sqlmock")
+	s.tracer = mocktracer.New()
 }
 
 func (s *PgURLVisitRepositoryTestSuite) TearDownTest() {
@@ -84,8 +88,8 @@ func (s *PgURLVisitRepositoryTestSuite) TestPgURLVisitRepository_AddURLVisit() {
 		s.Run(tt.name, func() {
 			tt.mockBehavior(tt.args)
 
-			repository := NewPgURLVisitRepository(s.db, tt.timeout)
-			err := repository.AddURLVisit(tt.args.urlID, tt.args.ip)
+			repository := NewPgURLVisitRepository(s.db, tt.timeout, s.tracer)
+			err := repository.AddURLVisit(context.Background(), tt.args.urlID, tt.args.ip)
 			if tt.wantError {
 				s.Error(err)
 			} else {

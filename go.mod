@@ -1,4 +1,4 @@
-module github.com/phpCoder88/url-shortener
+module github.com/phpCoder88/url-shortener-observable
 
 go 1.17
 
@@ -15,10 +15,11 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/justinas/alice v1.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/opentracing/opentracing-go v1.2.0
 	github.com/speps/go-hashids/v2 v2.0.1
 	github.com/stretchr/testify v1.7.0
+	github.com/uber/jaeger-client-go v2.29.1+incompatible
 	go.uber.org/atomic v1.8.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.17.0
@@ -27,6 +28,7 @@ require (
 )
 
 require (
+	github.com/HdrHistogram/hdrhistogram-go v1.1.2 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -42,6 +44,8 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e // indirect
 	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect

@@ -1,37 +1,50 @@
 package shortener
 
 import (
+	"context"
 	"errors"
 	"net/url"
 	"strconv"
 	"time"
 
-	"github.com/phpCoder88/url-shortener/internal/repositories/interfaces"
-
+	"github.com/opentracing/opentracing-go"
 	"github.com/speps/go-hashids/v2"
 
-	"github.com/phpCoder88/url-shortener/internal/dto"
-	"github.com/phpCoder88/url-shortener/internal/entities"
+	"github.com/phpCoder88/url-shortener-observable/internal/dto"
+	"github.com/phpCoder88/url-shortener-observable/internal/entities"
+	"github.com/phpCoder88/url-shortener-observable/internal/repositories/interfaces"
 )
 
 type Service struct {
 	shortURLRepo interfaces.ShortURLRepository
 	urlVisitRepo interfaces.URLVisitRepository
+	tracer       opentracing.Tracer
 }
 
-func NewService(shortURLRepo interfaces.ShortURLRepository, urlVisitRepo interfaces.URLVisitRepository) *Service {
+func NewService(
+	shortURLRepo interfaces.ShortURLRepository,
+	urlVisitRepo interfaces.URLVisitRepository,
+	tracer opentracing.Tracer,
+) *Service {
 	return &Service{
 		shortURLRepo: shortURLRepo,
 		urlVisitRepo: urlVisitRepo,
+		tracer:       tracer,
 	}
 }
 
-func (s *Service) FindAll(limit, offset int64) ([]dto.ShortURLReportDto, error) {
-	return s.shortURLRepo.FindAll(limit, offset)
+func (s *Service) FindAll(ctx context.Context, limit, offset int64) ([]dto.ShortURLReportDto, error) {
+	span, newCtx := opentracing.StartSpanFromContextWithTracer(ctx, s.tracer, "ShortenerService.FindAll")
+	defer span.Finish()
+
+	return s.shortURLRepo.FindAll(newCtx, limit, offset)
 }
 
-func (s *Service) CreateShortURL(urlStr string) (*entities.ShortURL, bool, error) {
-	urlRecord, exists, err := s.IsURLExists(urlStr)
+func (s *Service) CreateShortURL(ctx context.Context, urlStr string) (*entities.ShortURL, bool, error) {
+	span, newCtx := opentracing.StartSpanFromContextWithTracer(ctx, s.tracer, "ShortenerService.CreateShortURL")
+	defer span.Finish()
+
+	urlRecord, exists, err := s.IsURLExists(newCtx, urlStr)
 	if err != nil {
 		return nil, false, err
 	}
@@ -40,7 +53,7 @@ func (s *Service) CreateShortURL(urlStr string) (*entities.ShortURL, bool, error
 		return urlRecord, true, nil
 	}
 
-	token, err := s.shortURL(urlStr)
+	token, err := s.shortURL(newCtx, urlStr)
 	if err != nil {
 		return nil, false, err
 	}
@@ -52,7 +65,7 @@ func (s *Service) CreateShortURL(urlStr string) (*entities.ShortURL, bool, error
 		CreatedAt: time.Now(),
 	}
 
-	err = s.shortURLRepo.Add(urlRecord)
+	err = s.shortURLRepo.Add(newCtx, urlRecord)
 	if err != nil {
 		return nil, false, err
 	}
@@ -60,8 +73,11 @@ func (s *Service) CreateShortURL(urlStr string) (*entities.ShortURL, bool, error
 	return urlRecord, false, nil
 }
 
-func (s *Service) IsURLExists(urlStr string) (*entities.ShortURL, bool, error) {
-	urlRecord, err := s.shortURLRepo.FindByURL(urlStr)
+func (s *Service) IsURLExists(ctx context.Context, urlStr string) (*entities.ShortURL, bool, error) {
+	span, newCtx := opentracing.StartSpanFromContextWithTracer(ctx, s.tracer, "ShortenerService.IsURLExists")
+	defer span.Finish()
+
+	urlRecord, err := s.shortURLRepo.FindByURL(newCtx, urlStr)
 	if err != nil {
 		return nil, false, err
 	}
@@ -69,7 +85,10 @@ func (s *Service) IsURLExists(urlStr string) (*entities.ShortURL, bool, error) {
 	return urlRecord, urlRecord != nil, nil
 }
 
-func (s *Service) shortURL(urlStr string) (string, error) {
+func (s *Service) shortURL(ctx context.Context, urlStr string) (string, error) {
+	span, _ := opentracing.StartSpanFromContextWithTracer(ctx, s.tracer, "ShortenerService.shortURL")
+	defer span.Finish()
+
 	hd := hashids.NewData()
 	h, err := hashids.NewWithData(hd)
 	if err != nil {
@@ -84,8 +103,16 @@ func (s *Service) shortURL(urlStr string) (string, error) {
 	return token, nil
 }
 
-func (s *Service) GetFullURL(token string) (string, error) {
-	urlRecord, err := s.shortURLRepo.FindByToken(token)
+func (s *Service) VisitFullURL(ctx context.Context, token, userIP string) (string, error) {
+	span, newCtx := opentracing.StartSpanFromContextWithTracer(ctx, s.tracer, "ShortenerService.VisitFullURL")
+	defer span.Finish()
+
+	urlRecord, err := s.shortURLRepo.FindByToken(newCtx, token)
+	if err != nil {
+		return "", err
+	}
+
+	err = s.urlVisitRepo.AddURLVisit(newCtx, urlRecord.ID, userIP)
 	if err != nil {
 		return "", err
 	}
@@ -93,21 +120,10 @@ func (s *Service) GetFullURL(token string) (string, error) {
 	return urlRecord.LongURL, nil
 }
 
-func (s *Service) VisitFullURL(token, userIP string) (string, error) {
-	urlRecord, err := s.shortURLRepo.FindByToken(token)
-	if err != nil {
-		return "", err
-	}
+func (s *Service) ParseLimitOffsetQueryParams(ctx context.Context, query url.Values, param string, defaultVal int64) (int64, error) {
+	span, _ := opentracing.StartSpanFromContextWithTracer(ctx, s.tracer, "ShortenerService.ParseLimitOffsetQueryParams_"+param)
+	defer span.Finish()
 
-	err = s.urlVisitRepo.AddURLVisit(urlRecord.ID, userIP)
-	if err != nil {
-		return "", err
-	}
-
-	return urlRecord.LongURL, nil
-}
-
-func (s *Service) ParseLimitOffsetQueryParams(query url.Values, param string, defaultVal int64) (int64, error) {
 	var paramInt int64
 	var err error
 

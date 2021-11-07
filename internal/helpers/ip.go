@@ -1,12 +1,13 @@
 package helpers
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
 )
 
-func GetIP(req *http.Request) (string, error) {
+func GetIP(ctx context.Context, req *http.Request) (string, error) {
 	ip, _, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
 		return "", err
