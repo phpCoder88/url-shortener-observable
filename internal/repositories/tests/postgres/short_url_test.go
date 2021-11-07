@@ -4,8 +4,8 @@
 package postgres
 
 import (
-	"github.com/phpCoder88/url-shortener/internal/entities"
-	"github.com/phpCoder88/url-shortener/internal/repositories/postgres"
+	"github.com/phpCoder88/url-shortener-observable/internal/entities"
+	"github.com/phpCoder88/url-shortener-observable/internal/repositories/postgres"
 )
 
 func (s *PgRepositoryTestSuite) TestShortURL_FindAll() {

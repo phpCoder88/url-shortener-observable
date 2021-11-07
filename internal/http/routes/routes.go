@@ -3,23 +3,24 @@ package routes
 import (
 	"net/http"
 
-	"github.com/phpCoder88/url-shortener/internal/http/handlers"
-	"github.com/phpCoder88/url-shortener/internal/http/middlewares"
-	"github.com/phpCoder88/url-shortener/internal/ioc"
-
 	gHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
+	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
+
+	"github.com/phpCoder88/url-shortener-observable/internal/http/handlers"
+	"github.com/phpCoder88/url-shortener-observable/internal/http/middlewares"
+	"github.com/phpCoder88/url-shortener-observable/internal/ioc"
 )
 
-func Routes(logger *zap.SugaredLogger, container *ioc.Container) http.Handler {
+func Routes(logger *zap.SugaredLogger, container *ioc.Container, tracer opentracing.Tracer) http.Handler {
 	standardMiddleware := alice.New(middlewares.RecoverPanic(logger))
 
 	router := mux.NewRouter()
 	api := router.PathPrefix("/api").Subrouter()
 
-	handler := handlers.NewHandler(logger, container)
+	handler := handlers.NewHandler(logger, container, tracer)
 
 	api.HandleFunc("/shorten", handler.ShortenEndpoint).Methods("POST")
 	api.HandleFunc("/report", handler.ReportEndpoint).Methods("GET")

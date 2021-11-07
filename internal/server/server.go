@@ -9,9 +9,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/phpCoder88/url-shortener/internal/config"
-	"github.com/phpCoder88/url-shortener/internal/http/routes"
-	"github.com/phpCoder88/url-shortener/internal/ioc"
+	"github.com/opentracing/opentracing-go"
+
+	"github.com/phpCoder88/url-shortener-observable/internal/config"
+	"github.com/phpCoder88/url-shortener-observable/internal/http/routes"
+	"github.com/phpCoder88/url-shortener-observable/internal/ioc"
 
 	"go.uber.org/zap"
 )
@@ -20,21 +22,23 @@ import (
 type Server struct {
 	server    http.Server
 	logger    *zap.SugaredLogger
+	tracer    opentracing.Tracer
 	conf      *config.Config
 	container *ioc.Container
 	errors    chan error
 }
 
-func NewServer(logger *zap.SugaredLogger, conf *config.Config, container *ioc.Container) *Server {
+func NewServer(logger *zap.SugaredLogger, conf *config.Config, container *ioc.Container, tracer opentracing.Tracer) *Server {
 	return &Server{
 		server: http.Server{
 			Addr:         net.JoinHostPort("", fmt.Sprint(conf.Server.Port)),
-			Handler:      routes.Routes(logger, container),
+			Handler:      routes.Routes(logger, container, tracer),
 			IdleTimeout:  conf.Server.IdleTimeout,
 			ReadTimeout:  conf.Server.ReadTimeout,
 			WriteTimeout: conf.Server.WriteTimeout,
 		},
 		logger:    logger,
+		tracer:    tracer,
 		conf:      conf,
 		container: container,
 		errors:    make(chan error, 1),

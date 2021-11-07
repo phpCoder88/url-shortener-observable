@@ -12,8 +12,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/phpCoder88/url-shortener/internal/config"
-	pgStorage "github.com/phpCoder88/url-shortener/internal/storages/postgres"
+	"github.com/phpCoder88/url-shortener-observable/internal/config"
+	pgStorage "github.com/phpCoder88/url-shortener-observable/internal/storages/postgres"
 )
 
 type PgRepositoryTestSuite struct {

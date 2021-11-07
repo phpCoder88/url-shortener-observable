@@ -187,7 +187,7 @@
           "x-go-name": "Token"
         }
       },
-      "x-go-package": "github.com/phpCoder88/url-shortener/internal/entities"
+      "x-go-package": "github.com/phpCoder88/url-shortener-observable/internal/entities"
     },
     "ShortURLReportDto": {
       "description": "ShortURLReportDto represents the short URL for this application with visiting statistics",
@@ -224,35 +224,7 @@
           "x-go-name": "Visits"
         }
       },
-      "x-go-package": "github.com/phpCoder88/url-shortener/internal/dto"
-    },
-    "URLVisit": {
-      "description": "URLVisit represents the visit of specific URL",
-      "type": "object",
-      "properties": {
-        "created_at": {
-          "type": "string",
-          "format": "date-time",
-          "x-go-name": "CreatedAt"
-        },
-        "id": {
-          "type": "integer",
-          "format": "int64",
-          "minimum": 1,
-          "x-go-name": "ID"
-        },
-        "ip": {
-          "type": "string",
-          "x-go-name": "IP"
-        },
-        "url_id": {
-          "type": "integer",
-          "format": "int64",
-          "minimum": 1,
-          "x-go-name": "UrlID"
-        }
-      },
-      "x-go-package": "github.com/phpCoder88/url-shortener/internal/entities"
+      "x-go-package": "github.com/phpCoder88/url-shortener-observable/internal/dto"
     }
   },
   "responses": {

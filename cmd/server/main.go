@@ -21,15 +21,17 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
-	"github.com/phpCoder88/url-shortener/internal/config"
-	"github.com/phpCoder88/url-shortener/internal/ioc"
-	"github.com/phpCoder88/url-shortener/internal/server"
-	"github.com/phpCoder88/url-shortener/internal/storages/postgres"
-	"github.com/phpCoder88/url-shortener/internal/version"
-
 	"go.uber.org/zap"
+
+	"github.com/phpCoder88/url-shortener-observable/internal/config"
+	"github.com/phpCoder88/url-shortener-observable/internal/ioc"
+	"github.com/phpCoder88/url-shortener-observable/internal/server"
+	"github.com/phpCoder88/url-shortener-observable/internal/storages/postgres"
+	"github.com/phpCoder88/url-shortener-observable/internal/tracing"
+	"github.com/phpCoder88/url-shortener-observable/internal/version"
 )
 
 func main() {
@@ -38,18 +40,32 @@ func main() {
 		log.Fatalf("can't initialize zap logger: %v", err)
 	}
 
-	logger = logger.With(
-		zap.String("Version", version.Version),
-		zap.String("BuildDate", version.BuildDate),
-		zap.String("BuildCommit", version.BuildCommit),
-	)
-
 	defer func() {
 		err = logger.Sync()
 		if err != nil {
 			log.Println(err)
 		}
 	}()
+
+	tracer, closer, err := tracing.InitJaeger("jaeger:6831", "shortener", logger)
+	if err != nil {
+		logger.Error(fmt.Sprintf("can't initialize Jaeger: %v", err))
+		return
+	}
+
+	defer func() {
+		err = closer.Close()
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}()
+
+	logger = logger.With(
+		zap.String("Version", version.Version),
+		zap.String("BuildDate", version.BuildDate),
+		zap.String("BuildCommit", version.BuildCommit),
+	)
+
 	slogger := logger.Sugar()
 
 	slogger.Info("Starting the application...")
@@ -66,8 +82,8 @@ func main() {
 	}
 
 	slogger.Info("Configuring the application units...")
-	container := ioc.NewContainer(db, conf.DB.QueryTimeout)
-	apiServer := server.NewServer(slogger, conf, container)
+	container := ioc.NewContainer(db, conf.DB.QueryTimeout, tracer)
+	apiServer := server.NewServer(slogger, conf, container, tracer)
 	err = apiServer.Run()
 	if err != nil {
 		slogger.Error("Occurred error during stopping the API server.", "err", err)
