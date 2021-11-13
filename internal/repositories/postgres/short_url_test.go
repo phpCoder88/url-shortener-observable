@@ -10,8 +10,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/phpCoder88/url-shortener/internal/dto"
-	"github.com/phpCoder88/url-shortener/internal/entities"
+	"github.com/phpCoder88/url-shortener-observable/internal/dto"
+	"github.com/phpCoder88/url-shortener-observable/internal/entities"
 )
 
 var ErrContextDeadlineExceeded = errors.New("context deadline exceeded")

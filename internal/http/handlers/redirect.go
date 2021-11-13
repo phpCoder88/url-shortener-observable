@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/phpCoder88/url-shortener/internal/helpers"
+	"github.com/phpCoder88/url-shortener-observable/internal/helpers"
 
 	"github.com/gorilla/mux"
 )

@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/phpCoder88/url-shortener/internal/repositories/interfaces"
+	"github.com/phpCoder88/url-shortener-observable/internal/repositories/interfaces"
 
 	"github.com/speps/go-hashids/v2"
 
-	"github.com/phpCoder88/url-shortener/internal/dto"
-	"github.com/phpCoder88/url-shortener/internal/entities"
+	"github.com/phpCoder88/url-shortener-observable/internal/dto"
+	"github.com/phpCoder88/url-shortener-observable/internal/entities"
 )
 
 type Service struct {

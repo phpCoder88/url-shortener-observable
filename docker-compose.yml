@@ -20,6 +20,13 @@ services:
     networks:
       - shortener
 
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    networks:
+      - shortener
+
   db:
     restart: always
     image: postgres:latest
