@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/phpCoder88/url-shortener/internal/config"
+	"github.com/phpCoder88/url-shortener-observable/internal/config"
 
 	_ "github.com/jackc/pgx/stdlib" // pgx driver
 	"github.com/jmoiron/sqlx"

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/phpCoder88/url-shortener/internal/ioc"
+	"github.com/phpCoder88/url-shortener-observable/internal/ioc"
 	"go.uber.org/zap"
 )
 

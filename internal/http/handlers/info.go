@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/phpCoder88/url-shortener/internal/responses"
-	"github.com/phpCoder88/url-shortener/internal/version"
+	"github.com/phpCoder88/url-shortener-observable/internal/responses"
+	"github.com/phpCoder88/url-shortener-observable/internal/version"
 )
 
 // swagger:route GET /service-info service BuildInfo
